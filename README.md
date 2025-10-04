@@ -1,4 +1,4 @@
-# 🧠 Friday - Your Personal AI Assistant
+# 🧠 Sonu's personal AI assistant
 
 This is a Python-based AI assistant inspired by *Jarvis*, capable of:
 
