@@ -1,0 +1,185 @@
+HOW LLM KNOWS WHAT PARAMETERS TO EXTRACT - COMPLETE EXPLANATION
+================================================================
+
+QUESTION: How does the LLM know that we need only these specific parameters?
+
+ANSWER: The LLM doesn't magically know what parameters to extract. It's guided by FUNCTION SCHEMAS and TRAINING PATTERNS.
+
+STEP 1: FUNCTION SCHEMA DEFINITION
+==================================
+
+The LLM knows what parameters to extract because of the FUNCTION SIGNATURE and DOCSTRING in tools.py:
+
+@function_tool()    
+async def send_email(
+    context: RunContext,  # type: ignore
+    to_email: str,
+    subject: str,
+    message: str,
+    from_email: Optional[str] = None,
+    from_password: Optional[str] = None,
+    cc_email: Optional[str] = None
+) -> str:
+    """
+    Send an email through Gmail. Can use user's own credentials or default system credentials.
+    
+    Args:
+        to_email: Recipient email address
+        subject: Email subject line
+        message: Email body content
+        from_email: Sender's Gmail address (optional, uses system default if not provided)
+        from_password: Sender's Gmail app password (optional, uses system default if not provided)
+        cc_email: Optional CC email address
+    """
+
+STEP 2: HOW THE LLM GETS THIS INFORMATION
+=========================================
+
+When you use @function_tool(), LiveKit automatically creates a FUNCTION SCHEMA that tells the LLM:
+
+{
+  "name": "send_email",
+  "description": "Send an email through Gmail. Can use user's own credentials or default system credentials.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "to_email": {
+        "type": "string",
+        "description": "Recipient email address"
+      },
+      "subject": {
+        "type": "string", 
+        "description": "Email subject line"
+      },
+      "message": {
+        "type": "string",
+        "description": "Email body content"
+      },
+      "from_email": {
+        "type": "string",
+        "description": "Sender's Gmail address (optional, uses system default if not provided)"
+      },
+      "from_password": {
+        "type": "string",
+        "description": "Sender's Gmail app password (optional, uses system default if not provided)"
+      },
+      "cc_email": {
+        "type": "string",
+        "description": "Optional CC email address"
+      }
+    },
+    "required": ["to_email", "subject", "message"]
+  }
+}
+
+STEP 3: LLM TRAINING AND PATTERN RECOGNITION
+============================================
+
+The LLM knows how to extract parameters because it was trained on millions of examples like:
+
+Training Example 1:
+User: "Send email to john@example.com with subject 'Meeting' and message 'Let's meet tomorrow'"
+Function: send_email(to_email="john@example.com", subject="Meeting", message="Let's meet tomorrow")
+
+Training Example 2:
+User: "Email alice@company.com about the project update, tell her we're on track"
+Function: send_email(to_email="alice@company.com", subject="Project Update", message="We're on track")
+
+Training Example 3:
+User: "Send email to bob@gmail.com with my credentials user@gmail.com and password xyz123"
+Function: send_email(to_email="bob@gmail.com", from_email="user@gmail.com", from_password="xyz123")
+
+STEP 4: NATURAL LANGUAGE UNDERSTANDING
+======================================
+
+The LLM uses SEMANTIC UNDERSTANDING to map your speech to parameters:
+
+Your Speech:
+"Send email to john@example.com with subject 'Meeting' and message 'Let's meet tomorrow'. Use my email myname@gmail.com with app password abcd efgh ijkl mnop"
+
+LLM Analysis:
+1. "Send email to john@example.com" → to_email = "john@example.com"
+2. "with subject 'Meeting'" → subject = "Meeting"
+3. "and message 'Let's meet tomorrow'" → message = "Let's meet tomorrow"
+4. "Use my email myname@gmail.com" → from_email = "myname@gmail.com"
+5. "with app password abcd efgh ijkl mnop" → from_password = "abcd efgh ijkl mnop"
+
+STEP 5: CONTEXT AND INSTRUCTIONS
+================================
+
+Your prompts also guide the LLM:
+
+# Email Functionality
+When users want to send emails, you can help them in two ways:
+1. If they provide their Gmail address and app password, use those credentials
+2. If they don't provide credentials, use the system default (if configured)
+
+For sending emails, ask users for:
+- Recipient email address
+- Subject line
+- Message content
+- Their Gmail address and app password (if they want to use their own account)
+
+Remind users that they need to use Gmail App Passwords, not their regular Gmail password.
+
+HOW LLM MAPS DIFFERENT WAYS OF SPEAKING TO PARAMETERS
+====================================================
+
+Example 1: Direct Approach
+User: "Send email to john@example.com with subject 'Meeting' and message 'Let's meet tomorrow'"
+LLM Extracts:
+- to_email = "john@example.com"
+- subject = "Meeting"
+- message = "Let's meet tomorrow"
+
+Example 2: Natural Language
+User: "Email john about our meeting tomorrow, tell him we'll meet at 2 PM"
+LLM Extracts:
+- to_email = "john@example.com" (from context or asks for email)
+- subject = "Meeting Tomorrow"
+- message = "We'll meet at 2 PM"
+
+Example 3: With Credentials
+User: "Send email to alice@company.com about project status using my email bob@gmail.com and password xyz123"
+LLM Extracts:
+- to_email = "alice@company.com"
+- subject = "Project Status"
+- message = "Project status update"
+- from_email = "bob@gmail.com"
+- from_password = "xyz123"
+
+THE MAGIC: FUNCTION CALLING FRAMEWORK
+=====================================
+
+The key is the FUNCTION CALLING framework that:
+
+1. Registers Functions: @function_tool() tells the system about available functions
+2. Creates Schemas: Automatically generates parameter schemas from function signatures
+3. Guides LLM: Provides the LLM with function descriptions and parameter requirements
+4. Validates Input: Ensures extracted parameters match expected types
+5. Handles Errors: Manages cases where parameters can't be extracted
+
+VISUAL REPRESENTATION
+=====================
+
+User Speech → LLM Processing → Parameter Extraction → Function Call
+     ↓              ↓                    ↓                ↓
+"Send email..." → Intent: email → to_email="..." → send_email(...)
+                 Function: send_email → subject="..." → 
+                 Schema: {...} → message="..." →
+                          → from_email="..." →
+                          → from_password="..."
+
+SUMMARY
+=======
+
+The LLM knows what parameters to extract because:
+
+1. FUNCTION SCHEMA: Your @function_tool() decorator creates a schema that tells the LLM what parameters exist
+2. TRAINING DATA: The LLM was trained on millions of examples of natural language → function parameters
+3. SEMANTIC UNDERSTANDING: It understands the meaning of words like "to", "subject", "message", "use my email"
+4. CONTEXT AWARENESS: It uses the function description and your prompts to understand the intent
+
+The LLM is essentially a PATTERN-MATCHING EXPERT that learned from millions of examples how to map human speech to structured function calls!
+
+KEY TAKEAWAY: The LLM doesn't "know" what parameters to extract - it's GUIDED BY THE FUNCTION SCHEMA and TRAINED ON MILLIONS OF EXAMPLES of how natural language maps to function parameters!

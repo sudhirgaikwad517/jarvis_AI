@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonu's Personal AI</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <style>
+        body { max-width: 800px; margin: auto; padding: 1rem; }
+        video { width: 100%; border-radius: 8px; background-color: #222; }
+        #remote-video-container { margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Talk to Sonu's Personal AI</h1>
+        <p>Your AI assistant, inspired by Jarvis.</p>
+    </header>
+    <main>
+        <div id="connection-form">
+            <label for="room-name">Enter a Room Name:</label>
+            <input type="text" id="room-name" value="sonu-ai-room">
+            <button id="connect-button">Connect</button>
+        </div>
+        <div id="video-display" style="display: none;">
+            <h3>You</h3>
+            <video id="local-video" autoplay muted></video>
+            <h3>AI Assistant</h3>
+            <div id="remote-video-container"></div>
+        </div>
+    </main>
+
+    <script src="/livekit-client.umd.min.js"></script>
+    <script src="/script.js"></script>
+</body>
+</html>

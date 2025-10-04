@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Service 1: Your AI Agent Worker
+  agent-worker:
+    build: .
+    command: ["python", "agent.py","start"]
+    env_file: .env
+    restart: unless-stopped
+
+  # Service 2: The Secure Token Server
+  token-server:
+    build: .
+    command: ["python", "token_server.py"]
+    ports:
+      - "8080:8080"
+    env_file: .env
+    restart: unless-stopped
+
+  # Service 3: The Nginx Frontend Server
+  frontend:
+    image: nginx:alpine
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    ports:
+      - "8000:80"
+    depends_on:
+      - token-server
